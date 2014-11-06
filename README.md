@@ -1,4 +1,4 @@
-docker-monetdb
+docker-monetdb 
 ==============
 
-Docker image for MonetDB columnar datastore distribution
+Dockerized MonetDB distribution's image based on phusion/baseimage. 
