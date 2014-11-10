@@ -14,11 +14,17 @@ RUN echo "deb http://archive.ubuntu.com/ubuntu trusty main universe" > /etc/apt/
     apt-get install wget -y && \
     wget --output-document=- http://dev.monetdb.org/downloads/MonetDB-GPG-KEY | apt-key add - && \
     apt-get update -y && \
-    apt-get install -y monetdb5-sql monetdb-client
+    apt-get install -y monetdb5-sql monetdb-client && \
+# Create dbfarm and a first database	
+RUN monetdbd create /opt/monet-dbfarm && \
+	monetdb create dm1 && \
+	monetdb start dm1 && \
+	monetdb release dm1
 	
-	
-CMD ["mserver5"]
 
 # Expose ports.
 EXPOSE 54321
+	
+CMD ["monetdbd", "/opt/monet-dbfarm", "start"]
+
 
