@@ -23,10 +23,9 @@ RUN monetdbd create /opt/monet-dbfarm && \
 	monetdb release dm1 && \
 	monetdbd stop /opt/monet-dbfarm
 	
-
 # Expose ports.
-EXPOSE 54321
-	
-CMD ["monetdbd", "start", "/opt/monet-dbfarm"]
+EXPOSE 50000
+
+CMD ["mserver5","--dbpath=/opt/monet-dbfarm/dm1"]
 
 
