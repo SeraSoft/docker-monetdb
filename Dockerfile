@@ -1,5 +1,3 @@
-# Docker image for Serasoft's Pentaho Business Analytics training courses
-#
 # VERSION	1.0
 
 FROM phusion/baseimage:0.9.15
