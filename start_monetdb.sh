@@ -1,4 +1,2 @@
-!#/bin/bash
-
-# Starts MonetDB process without demonizing it
+#!/bin/bash
 monetdbd start -n /opt/monet-dbfarm
