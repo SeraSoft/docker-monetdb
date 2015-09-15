@@ -3,6 +3,10 @@
 FROM phusion/baseimage:0.9.16
 MAINTAINER Sergio Ramazzina, sergio.ramazzina@serasoft.it
 
+ENV DWH_NAME dm1
+ENV DBFARM_ROOT /opt
+ENV DBFARM_DIR monet-dbfarm
+
 # Use baseimage-docker's init system.
 CMD ["/sbin/my_init"]
 
@@ -22,13 +26,13 @@ RUN echo "deb http://archive.ubuntu.com/ubuntu trusty main universe" > /etc/apt/
     apt-get install -y monetdb5-sql monetdb-client
 
 # Create dbfarm and a first database	
-RUN monetdbd create /opt/monet-dbfarm && \
-	monetdbd start /opt/monet-dbfarm && \
-	monetdb create dm1 && \
-	monetdb start dm1 && \
-	monetdb release dm1 && \
-	monetdbd stop /opt/monet-dbfarm && \
-	chown -R monetdb:serasoft /opt/monet-dbfarm
+RUN monetdbd create ${DBFARM_ROOT}/${DBFARM_DIR} && \
+	monetdbd start ${DBFARM_ROOT}/${DBFARM_DIR} && \
+	monetdb create ${DWH_NAME} && \
+	monetdb start ${DWH_NAME} && \
+	monetdb release ${DWH_NAME} && \
+	monetdbd stop ${DBFARM_ROOT}/${DBFARM_DIR} && \
+	chown -R monetdb:serasoft ${DBFARM_ROOT}/${DBFARM_DIR}
 
 # Add monetdb startup script
 RUN mkdir /etc/service/monetdb
@@ -46,7 +50,7 @@ RUN /etc/my_init.d/00_regen_ssh_host_keys.sh
 # Expose ports.
 EXPOSE 50000
 # Add VOLUME for monetdb dbfarm data backup
-VOLUME /opt/monet-dbfarm
+VOLUME ${DBFARM_ROOT}/${DBFARM_DIR}
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
