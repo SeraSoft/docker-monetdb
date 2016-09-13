@@ -1,6 +1,6 @@
 # VERSION	1.0
 
-FROM phusion/baseimage:0.9.16
+FROM phusion/baseimage:0.9.19
 MAINTAINER Sergio Ramazzina, sergio.ramazzina@serasoft.it
 
 ENV DWH_NAME dm1
@@ -13,7 +13,7 @@ CMD ["/sbin/my_init"]
 # Create monetdb user
 RUN groupadd -r serasoft && \
     useradd -r -g serasoft monetdb
- 
+
 #Make sure package repository is up to date
 RUN echo "deb http://archive.ubuntu.com/ubuntu trusty main universe" > /etc/apt/sources.list && \
     apt-get update && \
@@ -25,14 +25,10 @@ RUN echo "deb http://archive.ubuntu.com/ubuntu trusty main universe" > /etc/apt/
     apt-get update -y && \
     apt-get install -y monetdb5-sql monetdb-client
 
-# Create dbfarm and a first database	
-RUN monetdbd create ${DBFARM_ROOT}/${DBFARM_DIR} && \
-	monetdbd start ${DBFARM_ROOT}/${DBFARM_DIR} && \
-	monetdb create ${DWH_NAME} && \
-	monetdb start ${DWH_NAME} && \
-	monetdb release ${DWH_NAME} && \
-	monetdbd stop ${DBFARM_ROOT}/${DBFARM_DIR} && \
-	chown -R monetdb:serasoft ${DBFARM_ROOT}/${DBFARM_DIR}
+# Call init_db.sh script to initialize MonetDB database
+ADD init_db.sh /opt
+RUN chmod +x /opt/init_db.sh && \
+	/opt/init_db.sh
 
 # Add monetdb startup script
 RUN mkdir /etc/service/monetdb
@@ -46,14 +42,11 @@ RUN rm -f /etc/service/sshd/down && \
 # have to do that yourself. You may also comment out this instruction; the
 # init system will auto-generate one during boot.
 RUN /etc/my_init.d/00_regen_ssh_host_keys.sh
-	
+
 # Expose ports.
 EXPOSE 50000
 # Add VOLUME for monetdb dbfarm data backup
-VOLUME ${DBFARM_ROOT}/${DBFARM_DIR}
+VOLUME /opt/monet-dbfarm
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-
-
