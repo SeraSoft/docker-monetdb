@@ -11,9 +11,9 @@ ENV DBFARM_DIR monet-dbfarm
 CMD ["/sbin/my_init"]
 
 # Create monetdb user
-RUN groupadd -r serasoft && \
-    useradd -r -g serasoft monetdb
-
+RUN groupadd -r monetdb && \
+    useradd -r -g monetdb monetdb
+ 
 #Make sure package repository is up to date
 RUN echo "deb http://archive.ubuntu.com/ubuntu trusty main universe" > /etc/apt/sources.list && \
     apt-get update && \
@@ -25,15 +25,16 @@ RUN echo "deb http://archive.ubuntu.com/ubuntu trusty main universe" > /etc/apt/
     apt-get update -y && \
     apt-get install -y monetdb5-sql monetdb-client
 
-# Call init_db.sh script to initialize MonetDB database
-ADD init_db.sh /opt
-RUN chmod +x /opt/init_db.sh && \
-	/opt/init_db.sh
-
 # Add monetdb startup script
-RUN mkdir /etc/service/monetdb
+RUN mkdir /etc/service/monetdb && \
+    mkdir -p /opt/utils
+
+COPY utils /opt/utils
+
 ADD start_monetdb.sh /etc/service/monetdb/run
-RUN chown -R monetdb:serasoft /etc/service/monetdb
+ADD 02_init_container.sh /etc/my_init.d/02_init_container.sh
+
+RUN chown -R monetdb:monetdb /etc/service/monetdb
 
 RUN rm -f /etc/service/sshd/down && \
     echo "/usr/sbin/sshd > log &" >> /etc/my_init.d/00_regen_ssh_host_keys.sh
@@ -41,7 +42,8 @@ RUN rm -f /etc/service/sshd/down && \
 # Regenerate SSH host keys. baseimage-docker does not contain any, so you
 # have to do that yourself. You may also comment out this instruction; the
 # init system will auto-generate one during boot.
-RUN /etc/my_init.d/00_regen_ssh_host_keys.sh
+RUN chmod +x /etc/my_init.d/*.sh && \
+    chmod +x /opt/utils/*.sh
 
 # Expose ports.
 EXPOSE 50000
